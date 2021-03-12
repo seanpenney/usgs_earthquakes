@@ -1,5 +1,6 @@
 package com.seanpenney.earthquakes.ui.earthquakelist
 
+import android.R.attr.duration
 import android.app.ProgressDialog
 import android.os.Bundle
 import android.util.Log
@@ -11,60 +12,41 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.seanpenney.earthquakes.R
 import com.seanpenney.earthquakes.adapters.EarthquakeAdapter
 import com.seanpenney.earthquakes.data.db.EarthquakeDatabase
-import com.seanpenney.earthquakes.data.db.entities.EarthquakeData
 import com.seanpenney.earthquakes.data.repositories.EarthquakeRepository
 import kotlinx.android.synthetic.main.activity_earthquake.*
+
 
 class EarthquakeActivity : AppCompatActivity() {
     private val TAG = EarthquakeActivity::class.qualifiedName
 
-    var fetchedEarthquakeSize = -1
-    var earthquakeDatabaseSize = -2
+
+
+    lateinit var database: EarthquakeDatabase
+    lateinit var repository: EarthquakeRepository
+    lateinit var factory: EarthquakeViewModelFactory
+    lateinit var viewModel: EarthquakeViewModel
+    lateinit var adapter: EarthquakeAdapter
+    var fetchedEarthquakeSize : Int = -1
+    var earthquakeDatabaseSize : Int = 2
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_earthquake)
 
-        val database = EarthquakeDatabase(this)
-        val repository = EarthquakeRepository(database)
-        val factory = EarthquakeViewModelFactory(repository)
+        database = EarthquakeDatabase(this)
+        repository = EarthquakeRepository(database)
+        factory = EarthquakeViewModelFactory(repository)
 
-        val viewModel = ViewModelProviders.of(this, factory).get(EarthquakeViewModel::class.java)
+        viewModel = ViewModelProviders.of(this, factory).get(EarthquakeViewModel::class.java)
 
-        val adapter = EarthquakeAdapter(listOf(), viewModel)
+        adapter = EarthquakeAdapter(listOf(), viewModel)
 
         recyclerViewEarthquakes.layoutManager = LinearLayoutManager(this)
         recyclerViewEarthquakes.adapter = adapter
 
-        viewModel.deleteTable()
 
-        viewModel.fetchAllEarthquakesUsgs(object : FetchUsgsListener {
-            override fun onDataFetched(size: Int) {
-                Log.d(TAG, "Fetched size is: ${size}")
-                fetchedEarthquakeSize = size
-            }
 
-        })
 
-        viewModel.getDataCount().observe(this@EarthquakeActivity, Observer {
-            Log.d(TAG, "Earthquake db updated size: ${it}")
-            earthquakeDatabaseSize = it
-        }
-        )
-
-        val progress = ProgressDialog(this@EarthquakeActivity)
-        progress.setTitle("Loading")
-        progress.setMessage("Wait while loading...")
-        progress.setCancelable(false);
-        progress.show()
-
-        Thread(Runnable {
-            // It takes a while to populate the database, so I'm just waiting until its done populating until we let the user do anything with the recyclerview
-            while (fetchedEarthquakeSize != earthquakeDatabaseSize) {
-            }
-            progress.dismiss();
-            Log.d(TAG, "Data loaded")
-        }).start()
 
         btnSubmitSearch.setOnClickListener {
             var days: Long
@@ -85,18 +67,54 @@ class EarthquakeActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            Toast.makeText(this, "Searching through last ${days} days. You can click on the earthquake item to go to the USGS page for it", Toast.LENGTH_LONG).show()
+            viewModel.deleteTable()
 
+            fetchedEarthquakeSize = -1
+            earthquakeDatabaseSize = -2
 
-            viewModel.getAllEarthquakesSinceTime(System.currentTimeMillis() - (days * 86400000))
-                    .observe(this@EarthquakeActivity, Observer {
-                        adapter.earthquakes = it
-                        adapter.notifyDataSetChanged()
-                    })
+            viewModel.fetchAllEarthquakesUsgs(object : FetchUsgsListener {
+                override fun onDataFetched(size: Int) {
+                    Log.d(TAG, "Fetched size is: ${size}")
+                    fetchedEarthquakeSize = size
+                }
+
+            }, System.currentTimeMillis() - (days * 86400000))
+
+            viewModel.getDataCount().observe(this@EarthquakeActivity, Observer {
+                Log.d(TAG, "Earthquake db updated size: ${it}")
+                earthquakeDatabaseSize = it
+            }
+            )
+
+            val progress = ProgressDialog(this@EarthquakeActivity)
+            progress.setTitle("Loading")
+            progress.setMessage("Wait while loading...")
+            progress.setCancelable(false);
+            progress.show()
+
+            Thread(Runnable {
+                while (fetchedEarthquakeSize != earthquakeDatabaseSize) {
+
+                }
+                progress.dismiss();
+                Log.d(TAG, "Data loaded")
+
+                runOnUiThread {
+                    Toast.makeText(this, "Searching through last ${days} days. You can click on the earthquake item to go to the USGS page for it", Toast.LENGTH_LONG).show()
+                    viewModel.getAllEarthquakesSinceTime(System.currentTimeMillis() - (days * 86400000))
+                            .observe(this@EarthquakeActivity, Observer {
+                                adapter.earthquakes = it
+                                adapter.notifyDataSetChanged()
+                            })
+                }
+
+            }).start()
         }
 
 
     }
+
+
 
 
 }

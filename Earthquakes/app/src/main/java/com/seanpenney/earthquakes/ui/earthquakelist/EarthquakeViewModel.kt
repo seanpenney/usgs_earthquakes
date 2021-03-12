@@ -32,8 +32,8 @@ class EarthquakeViewModel(
     fun getAllEarthquakesSinceTime(time: Long) = repository.getAllEarthquakesSinceTime(time)
 
 
-    fun fetchAllEarthquakesUsgs(fetchUsgsListener: FetchUsgsListener) = CoroutineScope(Dispatchers.IO).launch {
-        repository.fetchAllEarthquakesUsgs(fetchUsgsListener)
+    fun fetchAllEarthquakesUsgs(fetchUsgsListener: FetchUsgsListener, startTime: Long) = CoroutineScope(Dispatchers.IO).launch {
+        repository.fetchAllEarthquakesUsgs(fetchUsgsListener, startTime)
     }
 
 }

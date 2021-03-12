@@ -16,12 +16,18 @@ object FetchUsgsData {
         println("FetchUsgsData class invoked.")
     }
 
-    public fun fetchEarthquakes(): List<EarthquakeData> {
+    public fun fetchEarthquakes(startTime: Long): List<EarthquakeData> {
+
+        val startDate = getDateString(startTime)
+        val endDate = getDateString(System.currentTimeMillis())
+        val url = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=" + startDate + "&endtime=" + endDate
+
+        Log.e(TAG, "url "+  url)
+
         val earthquakes = mutableListOf<EarthquakeData>()
 
-        // default endtime is present time and default starttime is NOW - 30 days ago, so we don't need to set those
         val connection =
-            URL("https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson").openConnection() as HttpURLConnection
+            URL(url).openConnection() as HttpURLConnection
         val data = connection.inputStream.bufferedReader().readText()
         val responseAsJsonObject = JSONObject(data)
         val featuresJsonArray = responseAsJsonObject.getJSONArray("features")
@@ -59,6 +65,12 @@ object FetchUsgsData {
 
         return earthquakes
 
+    }
+
+    private fun getDateString(time: Long): String {
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+        val date = java.util.Date(time)
+        return sdf.format(date)
     }
 
 }

@@ -23,10 +23,10 @@ class EarthquakeRepository(
 
     fun getAllEarthquakesSinceTime(time: Long) = db.getEarthquakeDao().getAllEarthquakesSinceTime(time)
 
-    suspend fun fetchAllEarthquakesUsgs(fetchUsgsListener: FetchUsgsListener) {
+    suspend fun fetchAllEarthquakesUsgs(fetchUsgsListener: FetchUsgsListener, startTime:Long) {
 
         try {
-            val earthQuakes = FetchUsgsData.fetchEarthquakes()
+            val earthQuakes = FetchUsgsData.fetchEarthquakes(startTime)
             fetchUsgsListener.onDataFetched(earthQuakes.size)
 
 
