@@ -1,6 +1,5 @@
 package com.seanpenney.earthquakes.ui.earthquakelist
 
-import android.R.attr.duration
 import android.app.ProgressDialog
 import android.os.Bundle
 import android.util.Log
@@ -51,7 +50,7 @@ class EarthquakeActivity : AppCompatActivity() {
         btnSubmitSearch.setOnClickListener {
             var days: Long
             try {
-                days = editTextTextPersonName.text.toString().toLong()
+                days = numDaysInput.text.toString().toLong()
 
             } catch (exception: Exception) {
                 Toast.makeText(
