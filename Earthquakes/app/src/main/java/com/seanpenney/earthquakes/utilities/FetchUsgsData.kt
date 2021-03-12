@@ -8,6 +8,7 @@ import com.seanpenney.earthquakes.data.db.entities.EarthquakeData
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.*
 
 object FetchUsgsData {
     private val TAG = FetchUsgsData::class.qualifiedName
@@ -70,6 +71,7 @@ object FetchUsgsData {
     private fun getDateString(time: Long): String {
         val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         val date = java.util.Date(time)
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
         return sdf.format(date)
     }
 

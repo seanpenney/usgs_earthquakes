@@ -11,6 +11,7 @@ import com.seanpenney.earthquakes.R
 import com.seanpenney.earthquakes.data.db.entities.EarthquakeData
 import com.seanpenney.earthquakes.ui.earthquakelist.EarthquakeViewModel
 import kotlinx.android.synthetic.main.earthquake_text.view.*
+import java.util.*
 
 
 class EarthquakeAdapter(
@@ -52,6 +53,7 @@ class EarthquakeAdapter(
     private fun getDateString(time: Long): String {
         val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
         val date = java.util.Date(time)
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
         return sdf.format(date)
 
     }
